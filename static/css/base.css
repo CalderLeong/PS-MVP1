@@ -1,0 +1,127 @@
+/* ----------------------------------
+   BASE STYLES — LIGHT & DARK MODE
+---------------------------------- */
+
+:root {
+    /* Light Mode Colors */
+    --bg: #fdf6f0;
+    --text: #3b2c22;
+    --card-bg: #ffffff;
+    --accent: #c59b72;
+    --nav-bg: #ffffff;
+    --border: #e8dcd0;
+}
+
+body.dark-mode {
+    /* Dark Mode Colors */
+    --bg: #2b211a;
+    --text: #f7e8d8;
+    --card-bg: #3a2f26;
+    --accent: #d9b28c;
+    --nav-bg: #3a2f26;
+    --border: #5a4639;
+}
+
+/* Global */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: "Poppins", sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    transition: background 0.3s, color 0.3s;
+}
+
+/* Navbar */
+.navbar {
+    background: var(--nav-bg);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    transition: background 0.3s, border 0.3s;
+    gap: 20px;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    flex: 1;
+    justify-content: flex-end;
+    gap: 20px;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text);
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.nav-links a:hover {
+    color: var(--accent);
+}
+
+/* Theme Toggle Button */
+.theme-btn {
+    background: var(--accent);
+    border: none;
+    padding: 8px 12px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: 0.3s;
+}
+
+.theme-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Page Layout */
+.page {
+    padding: 40px;
+}
+
+/* Input */
+input[type="text"] {
+    padding: 10px 12px;
+    width: 240px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    transition: 0.3s;
+}
+
+button {
+    padding: 10px 16px;
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-left: 10px;
+    transition: background 0.3s, transform 0.2s;
+}
+
+button:hover {
+    transform: scale(1.05);
+}
+
+/* Error */
+.error {
+    color: #ff6961;
+    margin-top: 10px;
+}
+
+/* Stock Card */
+.stock-card {
+    background: var(--card-bg);
+    padding: 20px;
+    border-radius: 14px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    margin-top: 20px;
+    border: 1px solid var(--border);
+    transition: background 0.3s, border 0.3s;
+}
