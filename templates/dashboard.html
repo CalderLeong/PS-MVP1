@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="title">PillowStocks Intelligence</h1>
+<p class="subtitle">Your personal "what to buy today" dashboard</p>
+<p class="time">Last refresh: {{ time }}</p>
+
+<form method="POST" class="mini-search">
+    <input type="text" name="add_ticker" placeholder="+ Add ticker" value="{{ added|default('') }}" autofocus>
+</form>
+
+<!-- TOP 6 — BIGGER, CLEANER, LUXURIOUS BROWN CARDS -->
+<div class="card-grid top-grid">
+    {% for s in top %}
+    <div class="card big-card {% if s.short_score > 600 %}short-fire{% elif s.long_score > 700 %}long-fire{% endif %}">
+        
+        <!-- Beautiful rank badge in top-right corner (no longer covers ticker) -->
+        {% if s.rank %}
+        <div class="rank-badge rank{{ s.rank }}">
+            #{{ s.rank }}
+        </div>
+        {% endif %}
+
+        <div class="ticker">{{ s.ticker }}</div>
+        <div class="name">{{ s.name }}</div>
+        <div class="price">{{ s.price }}</div>
+        <div class="dip">{{ s.dip_ath }} • {{ s.dip_6m }}</div>
+        
+        <div class="scores">
+            <span class="short {% if s.short_score > 600 %}hot{% endif %}">Short: {{ s.short_score|round(0)|int }}</span>
+            <span class="long {% if s.long_score > 700 %}hot{% endif %}">Long: {{ s.long_score|round(0)|int }}</span>
+        </div>
+
+        <div class="god-score {% if s.god_score > 2900 %}god-tier{% elif s.god_score > 2600 %}insane{% elif s.god_score > 2300 %}strong{% endif %}">
+            {{ s.god_score }}
+        </div>
+        
+        <div class="meta">RSI {{ s.rsi }} • ↑{{ s.upside }}</div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- FULL WATCHLIST -->
+{% if watch %}
+<h2 class="section-title">Full Watchlist ({{ watch|length }} stocks)</h2>
+<div class="card-grid watchlist-grid">
+    {% for s in watch %}
+    <div class="card {% if s.short_score > 600 %}short-fire{% elif s.long_score > 700 %}long-fire{% endif %}">
+        <div class="ticker">{{ s.ticker }}</div>
+        <div class="price">{{ s.price }}</div>
+        <div class="dip">{{ s.dip_ath }}</div>
+        
+        <div class="scores">
+            <span class="short {% if s.short_score > 600 %}hot{% endif %}">Short: {{ s.short_score|round(0)|int }}</span>
+            <span class="long {% if s.long_score > 700 %}hot{% endif %}">Long: {{ s.long_score|round(0)|int }}</span>
+        </div>
+        <div class="god-score {% if s.god_score > 2900 %}god-tier{% elif s.god_score > 2600 %}insane{% elif s.god_score > 2300 %}strong{% endif %}">
+            {{ s.god_score }}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+.mini-search { position: fixed; top: 100px; right: 30px; z-index: 1000; }
+.mini-search input { padding: 11px 18px; border-radius: 50px; border: 2.5px solid var(--accent); width: 200px; font-size: 1rem; background: var(--card-bg); color: var(--text); }
+.prominent { border: 3px solid var(--accent); box-shadow: 0 0 40px rgba(255, 120, 150, 0.4); }
+.scores { display: flex; justify-content: space-between; margin: 12px 0; font-weight: bold; font-size: 1.1em; }
+.short { color: #ff6b6b; }
+.long { color: #4ecdc4; }
+.hot { color: gold; text-shadow: 0 0 15px gold; font-size: 1.2em; }
+.short-fire { border: 3px solid #ff6b6b !important; box-shadow: 0 0 30px rgba(255,107,107,0.5); }
+.long-fire { border: 3px solid #4ecdc4 !important; box-shadow: 0 0 35px rgba(78,205,196,0.5); }
+.card:hover { transform: translateY(-12px); box-shadow: 0 20px 50px rgba(0,0,0,0.2); }
+.section-title { text-align: center; margin: 5rem 0 2rem; font-size: 2.2rem; color: var(--accent); font-weight: 700; }
+
+/* GOD SCORE & RANK (from your CSS) */
+.god-score { font-size: 2.4rem; font-weight: 900; margin: 12px 0; text-shadow: 0 0 20px gold; }
+.god-tier { color: #ff0066; text-shadow: 0 0 40px #ff0066; animation: pulse 1.5s infinite; }
+.insane   { color: gold; text-shadow: 0 0 30px gold; }
+.strong   { color: #00ff88; }
+.rank1, .rank2, .rank3 { position: absolute; top: -16px; left: 50%; transform: translateX(-50%); z-index: 10; font-weight: 900; }
+</style>
+
+<script>
+setTimeout(() => location.reload(), 8*60*1000);  // Auto-refresh every 8 min
+</script>
+
+{% endblock %}
