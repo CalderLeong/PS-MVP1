@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="title">Whale Tracker</h1>
+<p class="subtitle">Earnings, Events, News + Impact (Buy Opportunities)</p>
+
+<div class="whale-grid">
+    <div class="section">
+        <h2>Upcoming Earnings & Events</h2>
+        {% for event in events %}
+        <div class="event-item">
+            <strong>{{ event.ticker }}</strong> — {{ event.type }} on {{ event.date }}<br>
+            <span class="impact">{{ event.impact }}</span><br>
+            <small>{{ event.note }}</small>
+        </div>
+        {% endfor %}
+        {% if not events %}<p>No major events this month. Quiet waters.</p>{% endif %}
+    </div>
+
+    <div class="section">
+        <h2>Impact News (Rise/Drop Potential)</h2>
+        {% for item in news %}
+        <div class="news-item">
+            <strong>{{ item.ticker }}</strong> — {{ item.title }}<br>
+            <span class="impact {{ 'rise' if 'rise' in item.impact.lower() else 'drop' }}">{{ item.impact }}</span>
+            <a href="{{ item.link }}" target="_blank">Read</a>
+        </div>
+        {% endfor %}
+        {% if not news %}<p>No high-impact news. Market sleeping.</p>{% endif %}
+    </div>
+</div>
+
+<style>
+.whale-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; padding: 2rem; max-width: 1400px; margin: 0 auto; }
+.section { background: var(--card-bg); padding: 2.5rem; border-radius: 24px; border: 2px solid var(--accent); }
+.event-item, .news-item { padding: 1.2rem 0; border-bottom: 1px solid var(--border); }
+.event-item strong, .news-item strong { color: var(--accent); }
+.impact { font-weight: bold; font-size: 0.95rem; padding: 4px 12px; border-radius: 20px; }
+.impact.rise { background: rgba(0, 255, 0, 0.1); color: #28a745; }
+.impact.drop { background: rgba(255, 0, 0, 0.1); color: #dc3545; }
+.news-item a { color: #4ecdc4; text-decoration: none; font-weight: 600; }
+.news-item a:hover { text-decoration: underline; }
+</style>
+
+{% endblock %}

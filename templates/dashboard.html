@@ -1,0 +1,246 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<h1 class="title">PillowStocks Intelligence</h1>
+<p class="subtitle">Your personal "what to buy today" dashboard</p>
+<p class="time">Last refresh: {{ time }}</p>
+
+<!-- METRICS BAR -->
+<div class="metrics-bar">
+    <div class="metric-card">
+        <div class="metric-label">📊 Top Performer</div>
+        <div class="metric-value">{{ top[0].ticker if top else 'N/A' }}</div>
+        <div class="metric-subtext">God Score: {{ top[0].god_score_100|default(0)|int if top else 0 }}</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">🎯 Avg God Score</div>
+        <div class="metric-value">{{ (top|map(attribute='god_score_100')|list|sum / (top|length) if top else 0)|int }}</div>
+        <div class="metric-subtext">Top 6 average</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">🔥 Most Oversold</div>
+        <div class="metric-value">{{ (top|selectattr('rsi')|list|first).ticker if top else 'N/A' }}</div>
+        <div class="metric-subtext">Lowest RSI</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">⚡ Best Upside</div>
+        <div class="metric-value">{{ (top|selectattr('upside')|list|first).ticker if top else 'N/A' }}</div>
+        <div class="metric-subtext">Highest analyst upside</div>
+    </div>
+</div>
+
+<!-- FILTER & SORT -->
+<div class="watchlist-controls">
+    <div class="filter-tabs">
+        <button class="filter-btn active" data-filter="all">All {{ top|length }}</button>
+        <button class="filter-btn" data-filter="oversold">🔥 Oversold (RSI < 30)</button>
+        <button class="filter-btn" data-filter="overbought">⚠️ Overbought (RSI > 70)</button>
+        <button class="filter-btn" data-filter="dip">💎 Big Dip (>20% from ATH)</button>
+    </div>
+    <div class="sort-controls">
+        <select id="sortSelect" class="sort-select">
+            <option value="god-score">↑ Sort by God Score</option>
+            <option value="price-asc">↓ Sort by Price (Low→High)</option>
+            <option value="price-desc">↑ Sort by Price (High→Low)</option>
+            <option value="rsi">🔥 Sort by RSI</option>
+            <option value="upside">📈 Sort by Upside %</option>
+        </select>
+    </div>
+</div>
+
+<!-- TOP 6 — ENHANCED FLIP CARDS -->
+<div class="top-grid" id="topGrid">
+    {% for s in top %}
+    <div class="stock-card rank-{{ loop.index }}" 
+         data-ticker="{{ s.ticker }}"
+         data-rsi="{{ s.rsi|replace('%', '')|float }}"
+         data-god-score="{{ s.god_score_100|default(0)|int }}"
+         data-dip-ath="{{ s.dip_ath.replace('%', '') if '%' in s.dip_ath else s.dip_ath }}"
+         data-upside="{{ s.upside.replace('%', '') if '%' in s.upside else s.upside }}"
+        data-price="{{ s.price_numeric }}"
+         onclick="this.classList.toggle('flipped')">
+        
+        <div class="card-inner">
+            <!-- FRONT — CLEAN + SIGNALS -->
+            <div class="card-front">
+                <div class="rank-badge">
+                    {% if loop.index == 1 %}🥇
+                    {% elif loop.index == 2 %}🥈
+                    {% elif loop.index == 3 %}🥉
+                    {% else %}#{{ loop.index }}{% endif %}
+                </div>
+                
+                <div class="ticker">{{ s.ticker }}</div>
+                <div class="name">{{ s.name }}</div>
+                <div class="price">{{ s.price }}</div>
+                
+                <!-- SIGNAL DOTS -->
+                <div class="signals">
+                    {% if (s.rsi|replace('%', '')|float) < 30 %}
+                    <span class="signal hot" title="Oversold (RSI < 30)">🔥 Oversold</span>
+                    {% elif (s.rsi|replace('%', '')|float) > 70 %}
+                    <span class="signal cold" title="Overbought (RSI > 70)">❄️ Overbought</span>
+                    {% endif %}
+                    {% if (s.dip_ath|replace('%', '')|float) > 20 %}
+                    <span class="signal dip" title="Big dip from ATH">💎 -{{ s.dip_ath }}</span>
+                    {% endif %}
+                </div>
+                
+                <div class="god-score">{{ s.god_score_100|default(0)|int }}</div>
+            </div>
+
+            <!-- BACK — DETAILED ANALYTICS -->
+            <div class="card-back">
+                <div class="ticker-back">{{ s.ticker }}</div>
+                
+                <div class="stats-grid">
+                    <div class="stat-line">
+                        <span class="stat-label">From ATH</span>
+                        <span class="stat-value {% if (s.dip_ath|replace('%', '')|float) > 20 %}negative{% endif %}">{{ s.dip_ath }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">From 6M High</span>
+                        <span class="stat-value">{{ s.dip_6m }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">RSI (14)</span>
+                        <span class="stat-value {% if (s.rsi|replace('%', '')|float) < 30 %}hot{% elif (s.rsi|replace('%', '')|float) > 70 %}cold{% endif %}">{{ s.rsi }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Analyst Upside</span>
+                        <span class="stat-value positive">{{ s.upside }}</span>
+                    </div>
+                </div>
+                
+                <div class="analysis-note">
+                    {% if (s.rsi|replace('%', '')|float) < 30 and (s.upside|replace('%', '')|float) > 20 %}
+                    💡 Oversold + High upside = Potential buy
+                    {% elif (s.rsi|replace('%', '')|float) > 70 %}
+                    ⚠️ Overbought zone - Consider waiting
+                    {% else %}
+                    📊 Monitor for next signal
+                    {% endif %}
+                </div>
+                <div class="tap-note">Tap to flip back</div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- FULL WATCHLIST — ALSO FLIPS -->
+{% if watch %}
+<h2 class="section-title">Full Watchlist ({{ watch|length }} stocks)</h2>
+<div class="watchlist-grid" id="watchlistGrid">
+    {% for s in watch %}
+    <div class="stock-card watch-card" 
+         data-ticker="{{ s.ticker }}"
+         data-rsi="{{ s.rsi|replace('%', '')|float }}"
+         data-god-score="{{ s.god_score_100|default(0)|int }}"
+         data-upside="{{ s.upside|replace('%', '')|float }}"
+         data-dip-ath="{{ s.dip_ath|replace('%', '')|float }}"
+         data-price="{{ s.price_numeric }}"
+         onclick="this.classList.toggle('flipped')">
+
+        <div class="card-inner">
+            <div class="card-front">
+                <div class="ticker">{{ s.ticker }}</div>
+                <div class="price">{{ s.price }}</div>
+                
+                <!-- MINI SIGNALS -->
+                <div class="mini-signals">
+                    {% if (s.rsi|replace('%', '')|float) < 30 %}
+                    <span class="dot hot" title="Oversold"></span>
+                    {% elif (s.rsi|replace('%', '')|float) > 70 %}
+                    <span class="dot cold" title="Overbought"></span>
+                    {% endif %}
+                </div>
+                
+                <div class="god-score">{{ s.god_score_100|default(0)|int }}</div>
+            </div>
+            
+            <div class="card-back">
+                <div class="ticker-back">{{ s.ticker }}</div>
+                <div class="stats-grid">
+                    <div class="stat-line">
+                        <span class="stat-label">ATH Dip</span>
+                        <span class="stat-value">{{ s.dip_ath }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">6M High</span>
+                        <span class="stat-value">{{ s.dip_6m }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">RSI</span>
+                        <span class="stat-value">{{ s.rsi }}</span>
+                    </div>
+                    <div class="stat-line">
+                        <span class="stat-label">Upside</span>
+                        <span class="stat-value">{{ s.upside }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<script>
+// Filter & Sort logic
+document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        filterCards(btn.dataset.filter);
+    });
+});
+
+document.getElementById('sortSelect')?.addEventListener('change', (e) => {
+    sortCards(e.target.value);
+});
+
+function filterCards(filter) {
+    // Apply to BOTH top 6 AND watchlist
+    const cards = document.querySelectorAll('.stock-card');
+    cards.forEach(card => {
+        let show = true;
+        const rsi = parseFloat(card.dataset.rsi);
+        const dipAth = parseFloat(card.dataset.dipAth);
+        
+        if (filter === 'oversold') show = rsi < 30;
+        else if (filter === 'overbought') show = rsi > 70;
+        else if (filter === 'dip') show = dipAth > 20;
+        // 'all' shows everything
+        
+        card.style.display = show ? 'block' : 'none';
+    });
+}
+
+function sortCards(sortBy) {
+    const grid = document.getElementById('watchlistGrid');
+    if (!grid) return; // Skip if no watchlist
+    
+    const cards = Array.from(grid.querySelectorAll('.stock-card'));
+    
+    cards.sort((a, b) => {
+        if (sortBy === 'god-score') 
+            return parseFloat(b.dataset.godScore) - parseFloat(a.dataset.godScore);
+        if (sortBy === 'price-asc') 
+            return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (sortBy === 'price-desc') 
+            return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        if (sortBy === 'rsi') 
+            return parseFloat(a.dataset.rsi) - parseFloat(b.dataset.rsi);
+        if (sortBy === 'upside') 
+            return parseFloat(b.dataset.upside) - parseFloat(a.dataset.upside);
+        return 0;
+    });
+    
+    cards.forEach(card => grid.appendChild(card));
+}
+
+setTimeout(() => location.reload(), 8*60*1000);
+</script>
+
+{% endblock %}

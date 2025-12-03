@@ -1,0 +1,64 @@
+{% extends "layout.html" %}
+{% block content %}
+
+<div class="oracle-container">
+    <h1 class="oracle-title">The Oracle</h1>
+    <p class="oracle-subtitle">Ask anything. It knows your watchlist better than you do.</p>
+
+    <form method="POST" class="oracle-form">
+        <input type="text" name="question" placeholder="Speak, mortal..." 
+               value="{{ query }}" autofocus autocomplete="off" required>
+        <button type="submit">Consult The Oracle</button>
+    </form>
+
+    {% if answer %}
+    <div class="oracle-answer">
+        <h2>The Oracle Speaks:</h2>
+        <div class="answer-text">{{ answer }}</div>
+    </div>
+    {% endif %}
+
+    {% if results %}
+    <details class="data-preview">
+        <summary>Raw Data The Oracle Sees (Top 15)</summary>
+        <div class="data-grid">
+            {% for s in results %}
+            <div class="data-card">
+                <strong>{{ s.ticker }}</strong><br>
+                {{ s.name }}<br>
+                {{ s.price }} • {{ s.dip_ath }} • God: {{ s.god_score_100 }}
+            </div>
+            {% endfor %}
+        </div>
+    </details>
+    {% endif %}
+</div>
+
+<style>
+.oracle-container { max-width: 900px; margin: 4rem auto; padding: 0 2rem; text-align: center; }
+.oracle-title { font-size: 4rem; background: linear-gradient(90deg, #ff6b6b, #4ecdc4, #ffe66d); 
+                -webkit-background-clip: text; background-clip: text; color: transparent; 
+                font-weight: 900; margin-bottom: 0.5rem; }
+.oracle-subtitle { font-size: 1.4rem; color: var(--accent); margin-bottom: 3rem; }
+
+.oracle-form { margin: 3rem 0; }
+.oracle-form input { 
+    width: 70%; padding: 1.5rem; font-size: 1.5rem; border-radius: 50px 0 0 50px; 
+    border: 3px solid var(--accent); outline: none; background: var(--card-bg); color: var(--text);
+}
+.oracle-form button { 
+    padding: 1.5rem 3rem; font-size: 1.5rem; border-radius: 0 50px 50px 0; 
+    background: var(--accent); color: white; border: none; cursor: pointer; font-weight: bold;
+}
+.oracle-form button:hover { background: #d98c5a; }
+
+.oracle-answer { margin: 4rem 0; padding: 3rem; background: rgba(255,107,107,0.1); 
+                 border: 3px solid #ff6b6b; border-radius: 20px; }
+.answer-text { font-size: 2rem; line-height: 1.5; font-weight: 600; color: #ff6b6b; }
+
+.data-preview { margin-top: 5rem; text-align: left; }
+.data-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1rem; }
+.data-card { background: var(--card-bg); padding: 1rem; border-radius: 12px; border: 1px solid var(--border); font-size: 0.9rem; }
+</style>
+
+{% endblock %}
