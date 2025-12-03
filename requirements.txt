@@ -1,4 +1,7 @@
 flask
 yfinance
+<<<<<<< HEAD
 ollama
 feedparser
+=======
+>>>>>>> b0ac271a1c49c44e229e43fae03ed38970e55bfb
